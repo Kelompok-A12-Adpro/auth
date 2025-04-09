@@ -10,8 +10,6 @@ mod models;
 mod schema;
 mod routes;
 
-type PoolType = Pool<ConnectionManager<PgConnection>>;
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
