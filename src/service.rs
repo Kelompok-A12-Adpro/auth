@@ -1,8 +1,8 @@
-use crate::repositories::auth_repository::{create_user, find_user_by_email};
-use crate::models::user::{User, LoginRequest};
+use crate::repository::{create_user, find_user_by_email};
+use crate::models::{User, LoginRequest};
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
-use std::env;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub async fn register_user(user: User) -> Result<String, String> {
     if let Some(_) = find_user_by_email(&user.email).await {
@@ -43,12 +43,23 @@ fn verify_password(password: &str, hash: &str) -> bool {
 }
 
 fn create_jwt_token(user: &str) -> String {
-    let claims = jsonwebtoken::Claims {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    struct Claims {
+        sub: String,  
+        exp: usize,   
+    }
+
+    let expiration_time = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs() + 3600;  // Set the expiration time to 1 hour
+
+    let claims = Claims {
         sub: user.to_string(),
-        exp: 10000000000, // Set expiration time
+        exp: expiration_time as usize,
     };
 
-    let secret = env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string());
+    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "secretkeygaboletau".to_string());
     let encoding_key = EncodingKey::from_secret(secret.as_ref());
 
     encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).unwrap()
