@@ -59,7 +59,7 @@ fn create_jwt_token(user: &str) -> String {
         exp: expiration_time as usize,
     };
 
-    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "secretkeygaboletau".to_string());
+    let secret = std::env::var("JWT_SECRET").unwrap();
     let encoding_key = EncodingKey::from_secret(secret.as_ref());
 
     encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).unwrap()
