@@ -1,4 +1,4 @@
-use crate::models::user::{User, NewUser};
+use crate::models::{User, NewUser};
 use diesel::prelude::*;
 use crate::schema::users;
 use diesel::r2d2::{ConnectionManager, Pool};
