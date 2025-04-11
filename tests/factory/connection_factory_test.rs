@@ -64,4 +64,4 @@ mod tests {
         
         let _conn4 = factory.get_connection();
     }
-}~
+}
