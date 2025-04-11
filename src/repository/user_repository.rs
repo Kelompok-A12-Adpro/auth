@@ -1,11 +1,12 @@
-use crate::models::{User, NewUser};
+use crate::factory::connection_factory::ConnectionFactory;
+use crate::model::user::{User, NewUser};
 use diesel::prelude::*;
 use crate::schema::users;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use diesel::PgConnection;
 
 pub async fn find_user_by_email(email: &str) -> Option<User> {
-    let mut conn = establish_connection();
+    let connection_factory = ConnectionFactory::new();
+    let mut conn = connection_factory.get_connection();
+    
     users::table
         .filter(users::email.eq(email))
         .first::<User>(&mut conn)
@@ -14,8 +15,9 @@ pub async fn find_user_by_email(email: &str) -> Option<User> {
 }
 
 pub async fn create_user(new_user: User) -> Result<(), String> {
-    let mut conn = establish_connection();
-
+    let connection_factory = ConnectionFactory::new();
+    let mut conn = connection_factory.get_connection();
+    
     let new_user = NewUser {
         email: &new_user.email,
         password: &new_user.password,
@@ -29,13 +31,4 @@ pub async fn create_user(new_user: User) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     Ok(())
-}
-
-fn establish_connection() -> PooledConnection<ConnectionManager<PgConnection>> {
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool = Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-    pool.get().expect("Failed to get DB connection from pool")
 }
