@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse};
-use crate::service::{register_user, login_user};
-use crate::models::{User, LoginRequest};
+use crate::service::user_service::{register_user, login_user};
+use crate::model::user::{User, LoginRequest};
 
 pub async fn register_user_controller(user: web::Json<User>) -> HttpResponse {
     match register_user(user.into_inner()).await {
