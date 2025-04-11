@@ -1,7 +1,15 @@
 [package]
 name = "auth"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
+[lib]
+name = "auth"
+path = "src/lib.rs"
+
+[[bin]]
+name = "auth"
+path = "src/main.rs"
 
 [dependencies]
 actix-web = "4.0"
@@ -17,5 +25,10 @@ bcrypt = "0.12"
 jsonwebtoken = "8.1"
 dotenv = "0.15"
 tokio = { version = "1", features = ["full"] }
-actix-rt = "2.5"
+actix-rt = "2.8.0"
 uuid = "1.2"
+lazy_static = "1.4.0"
+mockall = "0.11.4"
+rand = "0.8"
+async-trait = "0.1"
+actix-http = "3.3.1"
