@@ -1,5 +1,5 @@
-use crate::repository::{create_user, find_user_by_email};
-use crate::models::{User, LoginRequest};
+use crate::repository::user_repository::{create_user, find_user_by_email};
+use crate::model::user::{User, LoginRequest};
 use bcrypt::{hash, verify};
 use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -52,7 +52,7 @@ fn create_jwt_token(user: &str) -> String {
     let expiration_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
-        .as_secs() + 3600;  // Set the expiration time to 1 hour
+        .as_secs() + 3600;  
 
     let claims = Claims {
         sub: user.to_string(),
