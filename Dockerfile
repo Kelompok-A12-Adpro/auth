@@ -1,22 +1,31 @@
-FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS builder
+FROM rust:1.82 AS builder
 
-WORKDIR /src/advshop
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
 COPY . .
-RUN ./gradlew clean bootJar
 
-FROM docker.io/library/eclipse-temurin:21-jre-alpine AS runner
+RUN cargo build --release
 
-ARG USER_NAME=auth
-ARG USER_UID=1000
-ARG USER_GID=${USER_UID}
+FROM ubuntu:22.04
 
-RUN addgroup -g ${USER_GID} ${USER_NAME} \
-    && adduser -h /opt/advshop -D -u ${USER_UID} -G ${USER_NAME} ${USER_NAME}
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-USER ${USER_NAME}
-WORKDIR /opt/advshop
-COPY --from=builder --chown=${USER_UID}:${USER_GID} /src/advshop/build/libs/*.jar app.jar
+COPY --from=builder /usr/src/app/target/release/suarakan-be /usr/local/bin/suarakan-be
 
-EXPOSE 8080
-ENTRYPOINT ["java"]
-CMD ["-jar", "app.jar"]
+COPY --from=builder /usr/src/app/migrations /usr/local/bin/migrations
+
+COPY --from=builder /usr/src/app/diesel.toml /usr/local/bin/
+
+WORKDIR /usr/local/bin
+
+ENV RUST_ENV=production
+
+EXPOSE 80
+
+CMD ["auth"]
