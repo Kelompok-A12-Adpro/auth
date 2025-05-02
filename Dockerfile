@@ -16,10 +16,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends libpq5 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/src/app/target/release/suarakan-be /usr/local/bin/suarakan-be
-
+COPY --from=builder /usr/src/app/target/release/auth /usr/local/bin/auth
 COPY --from=builder /usr/src/app/migrations /usr/local/bin/migrations
-
 COPY --from=builder /usr/src/app/diesel.toml /usr/local/bin/
 
 WORKDIR /usr/local/bin
@@ -28,4 +26,4 @@ ENV RUST_ENV=main
 
 EXPOSE 80
 
-CMD ["auth"]
+CMD ["auth"]
