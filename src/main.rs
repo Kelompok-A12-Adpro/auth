@@ -1,9 +1,5 @@
-use auth::controller;
 use auth::factory;
-use auth::model;
-use auth::repository;
 use auth::routes;
-use auth::service;
 
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
