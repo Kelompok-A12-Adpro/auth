@@ -9,6 +9,7 @@ pub struct User {
     pub password: String,
     pub name: String,
     pub phone: String,
+    pub is_admin: bool,
 }
 
 #[derive(Serialize, Deserialize, Insertable)]
@@ -18,10 +19,19 @@ pub struct NewUser<'a> {
     pub password: &'a str,
     pub name: &'a str,
     pub phone: &'a str,
+    pub is_admin: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginRequest {
     pub email: String,
     pub password: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RegisterRequest {
+    pub email: String,
+    pub password: String,
+    pub name: String,
+    pub phone: String,
 }

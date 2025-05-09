@@ -7,5 +7,6 @@ diesel::table! {
         password -> Varchar,
         name -> Varchar,
         phone -> Varchar,
+        is_admin -> Bool,
     }
 }

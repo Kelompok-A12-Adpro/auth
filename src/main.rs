@@ -5,6 +5,10 @@ use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use factory::connection_factory::ConnectionFactory;
 use std::env;
+use diesel::prelude::*;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
