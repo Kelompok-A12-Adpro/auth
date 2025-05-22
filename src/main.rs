@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use auth::factory;
 use auth::routes;
 
@@ -12,6 +13,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    
     dotenv().ok();
     let host = env::var("HOST").unwrap();
     let port = env::var("PORT").unwrap();
@@ -21,8 +23,16 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(
+                Cors::default()
+                    // Nanti tolong diganti sama fe deployed kalo udah bener
+                    .allowed_origin("http://localhost:3000")
+                    .allow_any_method()
+                    .allow_any_header()
+                    .max_age(3600),
+            )
             .app_data(web::Data::new(pool.clone()))
-            .configure(routes::routes::init_routes) 
+            .configure(routes::routes::init_routes)
     })
     .bind(format!("{}:{}", host, port))? 
     .run()
