@@ -17,7 +17,7 @@ mod tests {
         dotenv().ok();
         
         if env::var("JWT_SECRET").is_err() {
-            env::set_var("JWT_SECRET", "test_secret_key_for_jwt");
+            env::set_var("JWT_SECRET", "adprojomox123");
         }
     }
 
@@ -38,6 +38,7 @@ mod tests {
             password: test_password.to_string(),
             name: "Test User".to_string(),
             phone: "1234567890".to_string(),
+            
         };
         
         

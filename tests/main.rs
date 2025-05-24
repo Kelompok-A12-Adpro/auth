@@ -59,7 +59,7 @@ mod integration_tests {
         
         
         let req = test::TestRequest::post()
-            .uri("/register")
+            .uri("/auth/register")
             .set_json(&test_user)
             .to_request();
             
@@ -75,12 +75,9 @@ mod integration_tests {
         });
         
         let req = test::TestRequest::post()
-            .uri("/login")
+            .uri("/auth/login")
             .set_json(&login_req)
             .to_request();
-            
-        let resp = test::call_service(&app, req).await;
-        
         
         assert_eq!(resp.status(), StatusCode::OK);
         

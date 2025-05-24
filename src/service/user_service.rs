@@ -1,3 +1,4 @@
+// src/service/user_service.rs - Complete corrected version
 use crate::repository::user_repository::{create_user, find_user_by_email};
 use crate::model::user::{RegisterRequest, LoginRequest, NewUser};
 use bcrypt::{hash, verify};
@@ -5,21 +6,33 @@ use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub async fn register_user(req: RegisterRequest) -> Result<String, String> {
-    if req.name.trim().is_empty() || req.phone.trim().is_empty() {
+    // Trim and validate inputs
+    let trimmed_name = req.name.trim();
+    let trimmed_phone = req.phone.trim();
+    let trimmed_email = req.email.trim();
+    
+    if trimmed_name.is_empty() || trimmed_phone.is_empty() {
         return Err("Name and phone cannot be empty".to_string());
     }
+    
+    if trimmed_email.is_empty() {
+        return Err("Email cannot be empty".to_string());
+    }
 
-    if let Some(_) = find_user_by_email(&req.email).await {
+    // Check if user already exists
+    if let Some(_) = find_user_by_email(trimmed_email).await {
         return Err("Email already registered".to_string());
     }
 
-    let hashed_password = hash_password(&req.password);
+    // Hash password
+    let hashed_password = hash_password(&req.password)?;
 
+    // Create new user with trimmed values
     let new_user = NewUser {
-        email: &req.email,
+        email: trimmed_email,
         password: &hashed_password,
-        name: &req.name,
-        phone: &req.phone,
+        name: trimmed_name,
+        phone: trimmed_phone,
         is_admin: false,
     };
 
@@ -28,10 +41,17 @@ pub async fn register_user(req: RegisterRequest) -> Result<String, String> {
 }
 
 pub async fn login_user(req: LoginRequest) -> Result<String, String> {
-    match find_user_by_email(&req.email).await {
+    let trimmed_email = req.email.trim();
+    
+    if trimmed_email.is_empty() {
+        return Err("Email cannot be empty".to_string());
+    }
+    
+    match find_user_by_email(trimmed_email).await {
         Some(user) => {
+            // ⚠️ CRITICAL FIX: Remove the ? operator here since verify_password returns bool
             if verify_password(&req.password, &user.password) {
-                Ok(create_jwt_token(&user.email))
+                create_jwt_token(&user.email)
             } else {
                 Err("Invalid credentials".to_string())
             }
@@ -40,15 +60,21 @@ pub async fn login_user(req: LoginRequest) -> Result<String, String> {
     }
 }
 
-fn hash_password(password: &str) -> String {
-    hash(password, 12).expect("Error hashing password")
+// Fixed helper functions
+fn hash_password(password: &str) -> Result<String, String> {
+    if password.is_empty() {
+        return Err("Password cannot be empty".to_string());
+    }
+    
+    hash(password, 12).map_err(|e| format!("Error hashing password: {}", e))
 }
 
+// IMPORTANT: Keep this as bool return, don't change to Result<bool, String>
 fn verify_password(password: &str, hash: &str) -> bool {
     verify(password, hash).unwrap_or(false)
 }
 
-fn create_jwt_token(user_email: &str) -> String {
+fn create_jwt_token(user_email: &str) -> Result<String, String> {
     #[derive(serde::Serialize, serde::Deserialize)]
     struct Claims {
         sub: String,
@@ -57,7 +83,7 @@ fn create_jwt_token(user_email: &str) -> String {
 
     let expiration_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .map_err(|e| format!("System time error: {}", e))?
         .as_secs() + 3600;
 
     let claims = Claims {
@@ -65,8 +91,11 @@ fn create_jwt_token(user_email: &str) -> String {
         exp: expiration_time as usize,
     };
 
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET not set");
+    let secret = std::env::var("JWT_SECRET")
+        .map_err(|_| "JWT_SECRET environment variable not set".to_string())?;
+    
     let encoding_key = EncodingKey::from_secret(secret.as_ref());
 
-    encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).unwrap()
+    encode(&Header::new(Algorithm::HS256), &claims, &encoding_key)
+        .map_err(|e| format!("Error creating JWT token: {}", e))
 }
