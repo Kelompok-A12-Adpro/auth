@@ -46,3 +46,14 @@ pub async fn update_profile(
 
     Ok(())
 }
+
+pub async fn find_user_by_id(uid: i32) -> Option<crate::model::user::User> {
+    let factory = ConnectionFactory::new();
+    let mut conn = factory.get_connection();
+
+    users::table
+        .filter(users::id.eq(uid))
+        .first::<crate::model::user::User>(&mut conn)
+        .optional()
+        .unwrap()
+}
