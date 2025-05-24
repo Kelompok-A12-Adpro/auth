@@ -10,6 +10,7 @@ pub struct User {
     pub name: String,
     pub phone: String,
     pub is_admin: bool,
+    pub bio: String,
 }
 
 #[derive(Serialize, Deserialize, Insertable)]
