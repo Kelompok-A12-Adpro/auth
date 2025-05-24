@@ -9,11 +9,16 @@ use dotenv::dotenv;
 use mockall::predicate::*;
 use mockall::*;
 
+pub trait UserService {
+    fn register_user<'a>(&'a self, user: User) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, String>> + Send + 'a>>;
+    fn login_user<'a>(&'a self, login_req: LoginRequest) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, String>> + Send + 'a>>;
+}
+
 mock! {
     pub UserService {}
-    impl UserService {
-        pub async fn register_user(&self, user: User) -> Result<String, String>;
-        pub async fn login_user(&self, login_req: LoginRequest) -> Result<String, String>;
+    impl UserService for UserService {
+        fn register_user<'a>(&'a self, user: User) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, String>> + Send + 'a>>;
+        fn login_user<'a>(&'a self, login_req: LoginRequest) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, String>> + Send + 'a>>;
     }
 }
 
@@ -32,13 +37,15 @@ mod tests {
         
         mock_service
             .expect_register_user()
-            .returning(|_| Ok("User registered successfully".to_string()));
+            .returning(|_| {
+                Box::pin(async { Ok("User registered successfully".to_string()) })
+            });
         
         
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(mock_service))
-                .route("/register", web::post().to(register_user_controller))
+                .route("/auth/register", web::post().to(register_user_controller))
         ).await;
 
         
@@ -48,11 +55,13 @@ mod tests {
             password: "password123".to_string(),
             name: "Test User".to_string(),
             phone: "1234567890".to_string(),
+            is_admin: false,
+            bio: "This is a test user".to_string(),
         };
 
         
         let req = test::TestRequest::post()
-            .uri("/register")
+            .uri("/auth/register")
             .set_json(&user)
             .to_request();
 
@@ -74,13 +83,15 @@ mod tests {
         
         mock_service
             .expect_login_user()
-            .returning(|_| Ok("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.token".to_string()));
+            .returning(|_| {
+                Box::pin(async { Ok("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock.token".to_string()) })
+            });
         
         
         let app = test::init_service(
             App::new()
                 .app_data(web::Data::new(mock_service))
-                .route("/login", web::post().to(login_user_controller))
+                .route("/auth/login", web::post().to(login_user_controller))
         ).await;
 
         
@@ -91,13 +102,12 @@ mod tests {
 
         
         let req = test::TestRequest::post()
-            .uri("/login")
+            .uri("/auth/login")
             .set_json(&login_req)
             .to_request();
 
         
         let resp = test::call_service(&app, req).await;
-
         
         assert_eq!(resp.status(), StatusCode::OK);
         

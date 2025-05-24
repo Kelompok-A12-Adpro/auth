@@ -1,4 +1,4 @@
-use crate::factory::connection_factory::{ConnectionFactory, get_connection_factory};
+use auth::factory::connection_factory::{ConnectionFactory, get_connection_factory};
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
@@ -21,7 +21,7 @@ mod tests {
         let conn = factory.get_connection();
 
         let pool = factory.get_pool();
-        assert_eq!(pool.state().max_size, 15);
+        assert_eq!(pool.max_size(), 15);
     }
     
     #[test]
@@ -36,7 +36,7 @@ mod tests {
         let pool1 = factory.get_pool();
         let pool2 = factory2.get_pool();
         
-        assert_eq!(pool1.state().max_size, pool2.state().max_size);
+        assert_eq!(pool1.max_size(), pool2.max_size());
     }
 
     #[test]
@@ -46,7 +46,7 @@ mod tests {
         let pool = factory.get_pool();
         
         let state = pool.state();
-        assert_eq!(state.max_size, 15);
+        assert_eq!(pool.max_size(), 15);
     }
     
     #[test]

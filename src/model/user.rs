@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use diesel::{Queryable, Insertable};
 use crate::schema::users;
 
-#[derive(Serialize, Deserialize, Queryable)]
+#[derive(Serialize, Deserialize, Queryable, Clone)]
 pub struct User {
     pub id: i32,
     pub email: String,
