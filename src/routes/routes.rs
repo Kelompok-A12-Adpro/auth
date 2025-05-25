@@ -1,7 +1,27 @@
 use actix_web::web;
-use crate::controller::user_controller::{register_user_controller, login_user_controller};
+use crate::{
+    controller::{
+        profile_controller::{get_profile_controller, upsert_profile_controller},
+        user_controller::{login_user_controller, register_user_controller},
+    },
+};
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("auth/register", web::post().to(register_user_controller))
-        .route("auth/login", web::post().to(login_user_controller));
+    cfg
+
+        // ---------- Auth ----------
+        .service(
+            web::resource("/auth/register").route(web::post().to(register_user_controller)),
+        )
+        .service(web::resource("/auth/login").route(web::post().to(login_user_controller)))
+        
+        // ---------- Profile ----------
+        .service(web::resource("/profile") // own profile create/update
+            .route(web::post().to(upsert_profile_controller))
+            .route(web::put().to(upsert_profile_controller))
+        )
+        .service(
+            web::resource("/profile/{id}") // read any profile
+                .route(web::get().to(get_profile_controller)),
+        );
 }

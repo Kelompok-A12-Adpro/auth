@@ -1,4 +1,4 @@
-use crate::model::user::{User, NewUser, LoginRequest};
+use auth::model::user::{User, NewUser, LoginRequest};
 use serde_json;
 
 #[cfg(test)]
@@ -13,6 +13,8 @@ mod tests {
             password: "hashed_password".to_string(),
             name: "Test User".to_string(),
             phone: "1234567890".to_string(),
+            is_admin: false,
+            bio: "This is a test user".to_string(),
         };
 
         let json = serde_json::to_string(&user).expect("Failed to serialize User");
@@ -24,6 +26,8 @@ mod tests {
         assert_eq!(deserialized.password, user.password);
         assert_eq!(deserialized.name, user.name);
         assert_eq!(deserialized.phone, user.phone);
+        assert_eq!(deserialized.is_admin, user.is_admin);
+        assert_eq!(deserialized.bio, user.bio);
     }
     
     #[test]
@@ -33,12 +37,14 @@ mod tests {
             password: "password123",
             name: "Test User",
             phone: "1234567890",
+            is_admin: false,
         };
         
         assert_eq!(new_user.email, "test@example.com");
         assert_eq!(new_user.password, "password123");
         assert_eq!(new_user.name, "Test User");
         assert_eq!(new_user.phone, "1234567890");
+        assert_eq!(new_user.is_admin, false);
     }
     
     #[test]
@@ -61,7 +67,7 @@ mod tests {
     
     #[test]
     fn test_json_format_validation() {
-        let valid_json = r#"{"email":"test@example.com","password":"password123","name":"Test User","phone":"1234567890","id":1}"#;
+        let valid_json = r#"{"email":"test@example.com","password":"password123","name":"Test User","phone":"1234567890","id":1,"is_admin":false,"bio":"This is a test user"}"#;
         let user_result: Result<User, _> = serde_json::from_str(valid_json);
         assert!(user_result.is_ok());
         

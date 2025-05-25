@@ -8,5 +8,7 @@ diesel::table! {
         name -> Varchar,
         phone -> Varchar,
         is_admin -> Bool,
+        #[max_length = 255]
+        bio -> Varchar,
     }
 }

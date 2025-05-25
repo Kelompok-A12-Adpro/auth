@@ -10,33 +10,34 @@ mod tests {
     use super::*;
 
     
-    async fn setup_test_app() -> impl actix_web::dev::Service<
-        actix_web::test::TestRequest,
-        Response = actix_web::dev::ServiceResponse,
-        Error = actix_web::Error,
+    fn setup_test_app() -> App<
+        impl actix_web::dev::ServiceFactory<
+            actix_web::dev::ServiceRequest,
+            Config = (),
+            Response = actix_web::dev::ServiceResponse,
+            Error = actix_web::Error,
+            InitError = (),
+        >,
     > {
         dotenv().ok();
-        
-        
+
         let connection_factory = ConnectionFactory::new();
         let pool = connection_factory.get_pool();
-        
-        test::init_service(
-            App::new()
-                .app_data(web::Data::new(pool.clone()))
-                .configure(init_routes)
-        ).await
+
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .configure(init_routes)
     }
 
     
     #[actix_rt::test]
     async fn test_routes_configured() {
         
-        let app = setup_test_app().await;
+        let app = test::init_service(setup_test_app()).await;
         
         
         let req = test::TestRequest::post()
-            .uri("/register")
+            .uri("/auth/register")
             .to_request();
             
         let resp = test::call_service(&app, req).await;
@@ -46,7 +47,7 @@ mod tests {
         
         
         let req = test::TestRequest::post()
-            .uri("/login")
+            .uri("/auth/login")
             .to_request();
             
         let resp = test::call_service(&app, req).await;
@@ -55,25 +56,19 @@ mod tests {
         assert_ne!(resp.status(), StatusCode::NOT_FOUND, "Login route not found");
     }
     
-    
     #[actix_rt::test]
     async fn test_http_method_restrictions() {
-        
-        let app = setup_test_app().await;
-        
-        
+        let app = test::init_service(setup_test_app()).await;
+
         let req = test::TestRequest::get()
-            .uri("/register")
+            .uri("/auth/register")
             .to_request();
-            
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), StatusCode::METHOD_NOT_ALLOWED, "GET method should not be allowed for register");
-        
-        
+
         let req = test::TestRequest::get()
-            .uri("/login")
+            .uri("/auth/login")
             .to_request();
-            
         let resp = test::call_service(&app, req).await;
         assert_eq!(resp.status(), StatusCode::METHOD_NOT_ALLOWED, "GET method should not be allowed for login");
     }

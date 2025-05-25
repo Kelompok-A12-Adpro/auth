@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use diesel::{Queryable, Insertable};
 use crate::schema::users;
 
-#[derive(Serialize, Deserialize, Queryable)]
+#[derive(Serialize, Deserialize, Queryable, Clone)]
 pub struct User {
     pub id: i32,
     pub email: String,
@@ -10,6 +10,7 @@ pub struct User {
     pub name: String,
     pub phone: String,
     pub is_admin: bool,
+    pub bio: String,
 }
 
 #[derive(Serialize, Deserialize, Insertable)]
