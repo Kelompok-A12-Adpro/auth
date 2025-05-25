@@ -70,6 +70,8 @@ fn verify_password(password: &str, hash: &str) -> bool {
 pub struct Claims {
     pub sub: i32,
     pub exp: usize,
+    pub email: String,
+    pub is_admin: bool,
 }
 
 fn create_jwt_token(user: &User) -> Result<String, String> {
@@ -82,6 +84,8 @@ fn create_jwt_token(user: &User) -> Result<String, String> {
     let claims = Claims {
         sub: user.id,
         exp: expiration_time as usize,
+        email: user.email.clone(),
+        is_admin: user.is_admin,
     };
 
     let secret = std::env::var("JWT_SECRET")
