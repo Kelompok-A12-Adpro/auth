@@ -8,6 +8,7 @@ pub struct ProfileResponse {
     pub email: String,
     pub phone: String,
     pub bio: String,
+    pub campaigns: Option<Vec<CampaignSummary>>,
 }
 
 impl From<User> for ProfileResponse {
@@ -18,6 +19,7 @@ impl From<User> for ProfileResponse {
             email: u.email,
             phone: u.phone,
             bio: u.bio,
+            campaigns: None
         }
     }
 }
@@ -86,4 +88,13 @@ impl ProfileBuilder {
             bio,
         })
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CampaignSummary {
+    pub id: i32,
+    pub name: String,
+    pub target_amount: i64,
+    pub collected_amount: i64,
+    pub status: String,
 }

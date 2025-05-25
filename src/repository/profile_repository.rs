@@ -20,7 +20,7 @@ pub async fn save_profile(update: ProfileUpdate) -> Result<(), String> {
     let connection_factory = ConnectionFactory::new();
     let mut conn = connection_factory.get_connection();
 
-    diesel::update(users::table.filter(users::id.eq(update.uid)))
+    let affected = diesel::update(users::table.filter(users::id.eq(update.uid)))
         .set((
             users::name.eq(update.name),
             users::phone.eq(update.phone),
@@ -29,5 +29,10 @@ pub async fn save_profile(update: ProfileUpdate) -> Result<(), String> {
         .execute(&mut conn)
         .map_err(|e| e.to_string())?;
 
-    Ok(())
+    if affected == 0 {
+        Err(format!("No user found with id {}", update.uid))
+    } else {
+        println!("Updated profile for user id {} ({} row(s))", update.uid, affected);
+        Ok(())
+    }
 }
