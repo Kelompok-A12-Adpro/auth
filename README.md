@@ -1,5 +1,8 @@
 Authentication Feature by Valentino Kim Fernando
 
+Deploy URL:
+[http://98.85.64.149/](Auth)
+
 ### Monitoring
 
 ![alt text](public/image.png)
