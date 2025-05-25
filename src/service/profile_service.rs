@@ -28,7 +28,7 @@ use reqwest;
 use serde::Deserialize;
 
 pub async fn fetch_user_campaigns(user_id: i32) -> Vec<CampaignSummary> {
-    let url = format!("http://localhost:8000/campaigns/user/{}", user_id); // adjust port as needed
+    let url = format!("http://localhost:8000/campaigns/user/{}", user_id);
 
     match reqwest::get(&url).await {
         Ok(resp) => match resp.json::<Vec<CampaignSummary>>().await {
