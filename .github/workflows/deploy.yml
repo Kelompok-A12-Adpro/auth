@@ -1,42 +1,32 @@
-name: Deploying to Production
+name: Deploy to Koyeb
 
 on:
   push:
     branches:
       - main
+
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/auth:latest
 
-      - name: Releasing New Version
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            docker rmi $(docker images -a -q)
-            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
-            source .env
-            docker run -d \
-            --name=web_server \
-            -p 8080:8080 \
-            -e ENV1="insert env var anda disini jika perlu" \
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
+      - name: Trigger Koyeb redeploy
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.KOYEB_API_TOKEN }}" \
+            https://app.koyeb.com/v1/apps/386f4a7d-63b4-4221-b391-c265816136aa/services/fbcf6c60-6e41-49ce-b962-003309c08940/deploy

@@ -10,7 +10,7 @@ services:
       - db
     environment:
       RUST_ENV: main
-      DATABASE_URL: postgres://postgres:pookiebear1902@db/auth_microservice
+      DATABASE_URL: postgresql://neondb_owner:npg_8bkSqnm7fDVY@ep-young-tooth-a1hqtxg7-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
       JWT_SECRET: adprojomox123
       HOST: 0.0.0.0
       PORT: 80

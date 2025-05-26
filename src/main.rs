@@ -17,7 +17,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let host = env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
 
     let prometheus = setup_metrics();
@@ -29,7 +29,10 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:3000") // Ganti dengan URL frontend saat deploy
+                        .allowed_origin_fn(|origin, _req_head| {
+                        origin.as_bytes() == b"http://localhost:3000" ||
+                        origin.as_bytes() == b"https://gatherlove.vercel.app"
+                    })
                     .allow_any_method()
                     .allow_any_header()
                     .max_age(3600),
