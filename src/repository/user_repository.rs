@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use crate::schema::users;
-use crate::model::user::{User, NewUser};
+use crate::model::user::{NewUser, User, UserDataResponse};
 use crate::factory::connection_factory::ConnectionFactory;
 
 pub async fn find_user_by_email(email: &str) -> Option<User> {
@@ -56,4 +56,55 @@ pub async fn find_user_by_id(uid: i32) -> Option<crate::model::user::User> {
         .first::<crate::model::user::User>(&mut conn)
         .optional()
         .unwrap()
+}
+
+pub async fn get_recent_users_and_total() -> Result<UserDataResponse, String> {
+    let factory = ConnectionFactory::new();
+    let mut conn = factory.get_connection();
+
+    // Get total count of users
+    let total_users = users::table
+        .count()
+        .get_result::<i64>(&mut conn)
+        .map_err(|e| e.to_string())?;
+
+    // Get 5 most recent users (highest IDs)
+    let recent_users = users::table
+        .order(users::id.desc())
+        .limit(5)
+        .load::<User>(&mut conn)
+        .map_err(|e| e.to_string())?;
+
+    Ok(UserDataResponse {
+        users: recent_users,
+        total: total_users,
+    })
+}
+
+pub async fn get_all_users() -> Result<UserDataResponse, String> {
+    let factory = ConnectionFactory::new();
+    let mut conn = factory.get_connection();
+
+    let users = users::table
+        .order(users::id.desc())
+        .load::<User>(&mut conn)
+        .map_err(|e| e.to_string())?;
+
+    let total_users = users.len() as i64;
+
+    Ok(UserDataResponse {
+        users,
+        total: total_users,
+    })
+}
+
+pub async fn delete_user(uid: i32) -> Result<(), String> {
+    let factory = ConnectionFactory::new();
+    let mut conn = factory.get_connection();
+
+    diesel::delete(users::table.filter(users::id.eq(uid)))
+        .execute(&mut conn)
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
 }

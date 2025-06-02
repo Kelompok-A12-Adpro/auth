@@ -36,3 +36,14 @@ pub struct RegisterRequest {
     pub name: String,
     pub phone: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct UserDataResponse {
+    pub users: Vec<User>,
+    pub total: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DeleteUserRequest {
+    pub user_id: i32,
+}
